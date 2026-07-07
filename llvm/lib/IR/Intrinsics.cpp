@@ -1474,53 +1474,51 @@ Intrinsic::ID Intrinsic::getDeinterleaveIntrinsicID(unsigned Factor) {
 
 LLVM_ABI void Intrinsic::printFPClassMask(raw_ostream &OS,
                                           const Constant *ImmArgVal) {
-  if (const auto *CI = dyn_cast<ConstantInt>(ImmArgVal)) {
-    uint64_t Val = CI->getZExtValue();
-    if (Val <= fcAllFlags) {
-      SmallVector<StringRef, 5> Classes;
-      if (Val & fcZero) {
-        if ((Val & fcZero) == fcZero)
-          Classes.push_back("zero");
-        else if (Val & fcPosZero)
-          Classes.push_back("+zero");
-        else
-          Classes.push_back("-zero");
-      }
-      if (Val & fcSubnormal) {
-        if ((Val & fcSubnormal) == fcSubnormal)
-          Classes.push_back("subnormal");
-        else if (Val & fcPosSubnormal)
-          Classes.push_back("+subnormal");
-        else
-          Classes.push_back("-subnormal");
-      }
-      if (Val & fcNormal) {
-        if ((Val & fcNormal) == fcNormal)
-          Classes.push_back("normal");
-        else if (Val & fcPosNormal)
-          Classes.push_back("+normal");
-        else
-          Classes.push_back("-normal");
-      }
-      if (Val & fcInf) {
-        if ((Val & fcInf) == fcInf)
-          Classes.push_back("inf");
-        else if (Val & fcPosInf)
-          Classes.push_back("+inf");
-        else
-          Classes.push_back("-inf");
-      }
-      if (Val & fcNan) {
-        if ((Val & fcNan) == fcNan)
-          Classes.push_back("nan");
-        else if (Val & fcQNan)
-          Classes.push_back("qnan");
-        else
-          Classes.push_back("snan");
-      }
-      OS << llvm::join(Classes, "|");
-      return;
+  uint64_t Val = cast<ConstantInt>(ImmArgVal)->getZExtValue();
+  if (Val <= fcAllFlags) {
+    SmallVector<StringRef, 5> Classes;
+    if (Val & fcZero) {
+      if ((Val & fcZero) == fcZero)
+        Classes.push_back("zero");
+      else if (Val & fcPosZero)
+        Classes.push_back("pzero");
+      else
+        Classes.push_back("nzero");
     }
+    if (Val & fcSubnormal) {
+      if ((Val & fcSubnormal) == fcSubnormal)
+        Classes.push_back("sub");
+      else if (Val & fcPosSubnormal)
+        Classes.push_back("psub");
+      else
+        Classes.push_back("nsub");
+    }
+    if (Val & fcNormal) {
+      if ((Val & fcNormal) == fcNormal)
+        Classes.push_back("norm");
+      else if (Val & fcPosNormal)
+        Classes.push_back("pnorm");
+      else
+        Classes.push_back("nnorm");
+    }
+    if (Val & fcInf) {
+      if ((Val & fcInf) == fcInf)
+        Classes.push_back("inf");
+      else if (Val & fcPosInf)
+        Classes.push_back("pinf");
+      else
+        Classes.push_back("ninf");
+    }
+    if (Val & fcNan) {
+      if ((Val & fcNan) == fcNan)
+        Classes.push_back("nan");
+      else if (Val & fcQNan)
+        Classes.push_back("qnan");
+      else
+        Classes.push_back("snan");
+    }
+    OS << llvm::join(Classes, "|");
+    return;
   }
   llvm_unreachable("printFPClassMask called with invalid value for "
                    "immediate argument");

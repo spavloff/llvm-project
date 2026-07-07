@@ -111,11 +111,6 @@ static cl::opt<bool> PrintAddrspaceName("print-addrspace-name", cl::Hidden,
                                         cl::init(false),
                                         cl::desc("Print address space names"));
 
-static cl::opt<bool> PrintFormattedConstants(
-    "print-formatted-constants",
-    cl::desc("Pretty print constants using custom formatters"), cl::Hidden,
-    cl::init(false));
-
 // Make virtual table appear in this compilation unit.
 AssemblyAnnotationWriter::~AssemblyAnnotationWriter() = default;
 
@@ -4641,30 +4636,24 @@ void AssemblyWriter::printInstruction(const Instruction &I) {
     Out << ' ';
     writeOperand(Operand, false);
     Out << '(';
-    Intrinsic::ID IID = CI->getIntrinsicID();
     bool HasPrettyPrintedArgs =
-        isa<IntrinsicInst>(CI) && Intrinsic::hasPrettyPrintedArgs(IID);
+        isa<IntrinsicInst>(CI) &&
+        Intrinsic::hasPrettyPrintedArgs(CI->getIntrinsicID());
 
-    // For compatibility always use formatters for target intrinsics. For others
-    // take command-line option into account.
-    if (IID && !Intrinsic::isTargetIntrinsic(IID)) {
-      if (!PrintFormattedConstants)
-        HasPrettyPrintedArgs = false;
-    }
-
+    ListSeparator LS;
+    Function *CalledFunc = CI->getCalledFunction();
     auto PrintArgComment = [&](unsigned ArgNo) {
       const auto *ConstArg = dyn_cast<Constant>(CI->getArgOperand(ArgNo));
       if (!ConstArg || !CalledFunc)
         return;
       std::string ArgComment;
       raw_string_ostream ArgCommentStream(ArgComment);
+      Intrinsic::ID IID = CalledFunc->getIntrinsicID();
       Intrinsic::printImmArg(IID, ArgNo, ArgCommentStream, ConstArg);
       if (ArgComment.empty())
         return;
       Out << "/* " << ArgComment << " */ ";
     };
-
-    ListSeparator LS;
     if (HasPrettyPrintedArgs) {
       for (unsigned ArgNo = 0, NumArgs = CI->arg_size(); ArgNo < NumArgs;
            ++ArgNo) {
