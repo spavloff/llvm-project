@@ -87,7 +87,7 @@ b:
 define void @ifThen_fpclass(float %x) {
 ; CHECK-LABEL: define void @ifThen_fpclass(
 ; CHECK-SAME: float [[X:%.*]]) {
-; CHECK-NEXT:    [[CLASS:%.*]] = call i1 @llvm.is.fpclass.f32(float [[X]], /* nnorm|nan */ i32 11)
+; CHECK-NEXT:    [[CLASS:%.*]] = call i1 @llvm.is.fpclass.f32(float [[X]], /* (nan nnorm) */ i32 11)
 ; CHECK-NEXT:    br i1 true, label %[[A:.*]], label %[[B:.*]]
 ; CHECK:       [[A]]:
 ; CHECK-NEXT:    br label %[[B]]
